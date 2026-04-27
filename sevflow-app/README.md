@@ -126,7 +126,7 @@ Production-oriented Helm values are in:
 Update these placeholders before deployment:
 
 - `image.repository`
-- `ingress.host`
+- `ingress.host` if you want host-based routing
 
 Example:
 
@@ -138,6 +138,8 @@ helm upgrade --install sevflow-app helm/sevflow-app \
   --set image.repository=<account-id>.dkr.ecr.us-east-1.amazonaws.com/sevflow-app \
   --set image.tag=<image-tag>
 ```
+
+If you want to use the ingress load balancer URL directly in a browser, leave `ingress.host` empty and use a path-based route such as `/sevflow`. The default production values already do this.
 
 ## Argo CD
 

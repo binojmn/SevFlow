@@ -57,9 +57,9 @@ node_group_ami_type       = "AL2023_x86_64_STANDARD"
 node_group_instance_types = ["t3.micro"]
 node_group_use_latest_ami_release_version = true
 node_group_ami_release_version            = ""
-node_group_min_size       = 2
-node_group_max_size       = 2
-node_group_desired_size   = 2
+node_group_min_size       = 3
+node_group_max_size       = 4
+node_group_desired_size   = 3
 
 bastion_key_algorithm               = "RSA"
 bastion_key_rsa_bits                = 4096

@@ -20,7 +20,7 @@ ingress:
   enabled: true
   className: nginx
   annotations: {}
-  host: sevflow.local
+  host: ""
   path: /
   pathType: Prefix
   tls: []

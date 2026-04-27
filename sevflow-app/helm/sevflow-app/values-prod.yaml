@@ -1,0 +1,33 @@
+image:
+  repository: "<account-id>.dkr.ecr.us-east-1.amazonaws.com/sevflow-app"
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+env:
+  appEnv: prod
+  appVersion: "1.0.0"
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  host: sevflow.example.com
+  path: /
+  pathType: Prefix
+  tls: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi

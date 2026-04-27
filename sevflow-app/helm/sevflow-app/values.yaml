@@ -1,0 +1,34 @@
+replicaCount: 1
+
+image:
+  repository: sevflow-app
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+containerPort: 8080
+
+env:
+  appEnv: dev
+  appVersion: "1.0.0"
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  host: sevflow.local
+  path: /
+  pathType: Prefix
+  tls: []
+
+resources: {}
+
+ingress-nginx:
+  enabled: false
+  controller:
+    service:
+      type: LoadBalancer

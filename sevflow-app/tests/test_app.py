@@ -1,0 +1,33 @@
+import unittest
+
+from app import app
+
+
+class SevFlowAppTests(unittest.TestCase):
+    def setUp(self):
+        self.client = app.test_client()
+
+    def test_home(self):
+        response = self.client.get("/")
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertEqual(payload["name"], "sevflow-app")
+        self.assertEqual(payload["status"], "ok")
+
+    def test_health(self):
+        response = self.client.get("/health")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {"status": "healthy"})
+
+    def test_severity_endpoint(self):
+        response = self.client.get("/api/severity")
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertIn("critical", payload["severityLevels"])
+
+
+if __name__ == "__main__":
+    unittest.main()

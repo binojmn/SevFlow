@@ -1,0 +1,161 @@
+# SevFlow App
+
+Simple SevFlow microservice with:
+
+- Python Flask app
+- Dockerfile
+- Helm chart
+- Optional `ingress-nginx` Helm dependency
+
+## Run locally
+
+```bash
+docker build -t sevflow-app:latest .
+docker run -p 8080:8080 sevflow-app:latest
+```
+
+## Endpoints
+
+- `/`
+- `/health`
+- `/api/severity`
+
+## Helm chart
+
+The Helm chart is under `helm/sevflow-app`.
+
+Recommended storage model:
+
+- Source Helm chart stays in this repo under `sevflow-app/helm/sevflow-app`
+- CI packages the chart on every run
+- Docker image is pushed to Amazon ECR
+- Packaged Helm chart is pushed to Amazon ECR as an OCI chart on `push`
+- You can later either:
+  - keep deploying the chart source directly with Argo CD, or
+  - deploy the packaged chart from Amazon ECR OCI
+
+Example install:
+
+```bash
+helm dependency update helm/sevflow-app
+helm upgrade --install sevflow-app helm/sevflow-app \
+  --namespace sevflow \
+  --create-namespace
+```
+
+To enable the bundled `ingress-nginx` dependency:
+
+```bash
+helm dependency update helm/sevflow-app
+helm upgrade --install sevflow-app helm/sevflow-app \
+  --namespace sevflow \
+  --create-namespace \
+  --set ingress-nginx.enabled=true
+```
+
+## CI
+
+GitHub Actions workflow:
+
+- `.github/workflows/sevflow-app-ci.yml`
+
+The CI pipeline:
+
+- installs Python dependencies
+- runs unit tests
+- builds the Docker image
+- packages the Helm chart
+- runs `helm dependency update`
+- runs `helm lint`
+- renders manifests with `helm template`
+- pushes the Docker image to Amazon ECR on `push`
+- pushes the packaged Helm chart to Amazon ECR OCI on `push`
+
+## GitHub Actions secrets
+
+The workflow expects this GitHub secret:
+
+- `AWS_GITHUB_ACTIONS_ROLE_ARN`: IAM role ARN that GitHub Actions can assume using OIDC
+
+Default workflow settings:
+
+- AWS region: `us-east-1`
+- ECR repository: `sevflow-app`
+- Helm OCI repository: `sevflow-app-chart`
+
+If the ECR repositories do not exist yet, create them first:
+
+```bash
+aws ecr create-repository --repository-name sevflow-app --region us-east-1
+aws ecr create-repository --repository-name sevflow-app-chart --region us-east-1
+```
+
+## Update image location for deployment
+
+Set the chart image repository to your ECR image URL when deploying, for example:
+
+```bash
+helm upgrade --install sevflow-app helm/sevflow-app \
+  --namespace sevflow \
+  --create-namespace \
+  --set image.repository=<account-id>.dkr.ecr.us-east-1.amazonaws.com/sevflow-app \
+  --set image.tag=<image-tag>
+```
+
+If you want to pull the packaged chart from ECR OCI:
+
+```bash
+aws ecr get-login-password --region us-east-1 | \
+helm registry login --username AWS --password-stdin <account-id>.dkr.ecr.us-east-1.amazonaws.com
+
+helm install sevflow-app \
+  oci://<account-id>.dkr.ecr.us-east-1.amazonaws.com/sevflow-app-chart/sevflow-app \
+  --version 0.1.0 \
+  --namespace sevflow \
+  --create-namespace \
+  --set image.repository=<account-id>.dkr.ecr.us-east-1.amazonaws.com/sevflow-app \
+  --set image.tag=<image-tag>
+```
+
+## Production values
+
+Production-oriented Helm values are in:
+
+- `helm/sevflow-app/values-prod.yaml`
+
+Update these placeholders before deployment:
+
+- `image.repository`
+- `ingress.host`
+
+Example:
+
+```bash
+helm upgrade --install sevflow-app helm/sevflow-app \
+  --namespace sevflow \
+  --create-namespace \
+  -f helm/sevflow-app/values-prod.yaml \
+  --set image.repository=<account-id>.dkr.ecr.us-east-1.amazonaws.com/sevflow-app \
+  --set image.tag=<image-tag>
+```
+
+## Argo CD
+
+Starter Argo CD application manifest:
+
+- `../argocd/sevflow-app-application.yaml`
+
+Before applying it, update:
+
+- `repoURL`
+- `targetRevision` if needed
+- `image.repository`
+- any hostname placeholders
+
+The application manifest is already annotated for Argo CD Image Updater, so once Image Updater is installed and allowed to read ECR plus write back to Git, it can automatically move `image.tag` forward for you.
+
+Apply with:
+
+```bash
+kubectl apply -f argocd/sevflow-app-application.yaml
+```

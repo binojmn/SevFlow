@@ -1,0 +1,17 @@
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/kubeconfig
+terraform/bastion-key.pem
+terraform/crash.log
+terraform/crash.*.log
+terraform/.terraform.tfstate.lock.info
+terraform/override.tf
+terraform/override.tf.json
+terraform/*_override.tf
+terraform/*_override.tf.json
+
+sevflow-app/__pycache__/
+sevflow-app/.pytest_cache/
+sevflow-app/.venv/
+sevflow-app/venv/

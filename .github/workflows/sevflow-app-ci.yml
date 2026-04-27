@@ -1,0 +1,109 @@
+name: sevflow-app-ci
+
+on:
+  push:
+    paths:
+      - "sevflow-app/**"
+      - ".github/workflows/sevflow-app-ci.yml"
+  pull_request:
+    paths:
+      - "sevflow-app/**"
+      - ".github/workflows/sevflow-app-ci.yml"
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: sevflow-app
+  HELM_ECR_REPOSITORY: sevflow-app-chart
+  HELM_CHART_PATH: sevflow-app/helm/sevflow-app
+
+jobs:
+  build-test-lint:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: sevflow-app
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -p "test_*.py"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Update chart dependencies
+        run: helm dependency update helm/sevflow-app
+
+      - name: Lint Helm chart
+        run: helm lint helm/sevflow-app
+
+      - name: Render Helm templates
+        run: helm template sevflow-app helm/sevflow-app
+
+      - name: Package Helm chart
+        run: |
+          mkdir -p dist
+          helm package helm/sevflow-app --destination dist
+
+      - name: Configure AWS credentials
+        if: github.event_name == 'push'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+
+      - name: Login to Amazon ECR
+        if: github.event_name == 'push'
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        run: docker build -t sevflow-app:${{ github.sha }} .
+
+      - name: Tag Docker image for ECR
+        if: github.event_name == 'push'
+        run: |
+          docker tag sevflow-app:${{ github.sha }} \
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          docker tag sevflow-app:${{ github.sha }} \
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+
+      - name: Push Docker image to ECR
+        if: github.event_name == 'push'
+        run: |
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+
+      - name: Login Helm to ECR OCI registry
+        if: github.event_name == 'push'
+        run: |
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
+          helm registry login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+
+      - name: Push Helm chart to ECR OCI registry
+        if: github.event_name == 'push'
+        run: |
+          helm push dist/sevflow-app-*.tgz oci://${{ steps.login-ecr.outputs.registry }}/${{ env.HELM_ECR_REPOSITORY }}
+
+      - name: Upload Helm chart package
+        uses: actions/upload-artifact@v4
+        with:
+          name: sevflow-app-chart
+          path: sevflow-app/dist/*.tgz

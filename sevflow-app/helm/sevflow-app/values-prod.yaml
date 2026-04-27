@@ -19,8 +19,8 @@ ingress:
   className: nginx
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
-  host: ""
-  path: /sevflow
+  host: app.sevflow.app
+  path: /
   pathType: Prefix
   tls: []
 

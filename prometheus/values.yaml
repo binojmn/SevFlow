@@ -1,0 +1,17 @@
+server:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    hosts:
+      - prometheus.sevflow.app
+    path: /
+    pathType: Prefix
+    tls: []
+
+alertmanager:
+  enabled: false
+
+pushgateway:
+  enabled: false

@@ -139,7 +139,7 @@ helm upgrade --install sevflow-app helm/sevflow-app \
   --set image.tag=<image-tag>
 ```
 
-If you want to use the ingress load balancer URL directly in a browser, leave `ingress.host` empty and use a path-based route such as `/sevflow`. The default production values already do this.
+The current production values are configured for host-based routing using `app.sevflow.app`.
 
 ## Argo CD
 

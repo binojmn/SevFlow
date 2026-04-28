@@ -1,6 +1,6 @@
 image:
   repository: "696155685144.dkr.ecr.us-east-1.amazonaws.com/sevflow-app"
-  tag: "e98729c5c3159c39ef2fd20829e291055e88f82c"
+  tag: "68844ea9469e7714216ec7ede35b4b7c3706c3d7"
   pullPolicy: IfNotPresent
 
 replicaCount: 2

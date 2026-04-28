@@ -1,6 +1,6 @@
 image:
   repository: "<account-id>.dkr.ecr.us-east-1.amazonaws.com/sevflow-app"
-  tag: "set-by-ci"
+  tag: "de75d8d318c9eb57fc24decce60e41369564c0af"
   pullPolicy: IfNotPresent
 
 replicaCount: 2

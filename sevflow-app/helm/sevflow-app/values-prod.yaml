@@ -18,11 +18,15 @@ ingress:
   enabled: true
   className: nginx
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-http
   host: app.sevflow.app
   path: /
   pathType: Prefix
-  tls: []
+  tls:
+    - hosts:
+        - app.sevflow.app
+      secretName: app-sevflow-app-tls
 
 resources:
   requests:

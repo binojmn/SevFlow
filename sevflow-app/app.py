@@ -10,7 +10,7 @@ def home():
         {
             "name": "sevflow-app",
             "status": "ok",
-            "message": "Welcome to the SevFlow microservice -12",
+            "message": "Welcome to the SevFlow microservice -14",
             "version": os.getenv("APP_VERSION", "1.0.0"),
             "environment": os.getenv("APP_ENV", "dev"),
         }

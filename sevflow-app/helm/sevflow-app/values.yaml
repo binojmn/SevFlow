@@ -27,6 +27,15 @@ ingress:
 
 resources: {}
 
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    path: /metrics
+    labels:
+      release: kube-prom-stack
+
 ingress-nginx:
   enabled: false
   controller:

@@ -1,0 +1,41 @@
+grafana:
+  additionalDataSources:
+    - name: Prometheus
+      type: prometheus
+      access: proxy
+      url: http://kube-prom-stack-prometheus.monitoring.svc.cluster.local:9090
+      isDefault: true
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      cert-manager.io/cluster-issuer: letsencrypt-http
+    hosts:
+      - grafana.sevflow.app
+    path: /
+    pathType: Prefix
+    tls:
+      - secretName: grafana-sevflow-app-tls
+        hosts:
+          - grafana.sevflow.app
+
+prometheus:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      cert-manager.io/cluster-issuer: letsencrypt-http
+    hosts:
+      - prometheus.sevflow.app
+    paths:
+      - /
+    pathType: Prefix
+    tls:
+      - secretName: prometheus-sevflow-app-tls
+        hosts:
+          - prometheus.sevflow.app
+
+prometheus-node-exporter:
+  enabled: true

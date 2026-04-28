@@ -37,6 +37,12 @@ def _observe_request_latency(method, endpoint, status_code, duration_seconds):
 
     REQUEST_LATENCY_BUCKET_COUNTS[(method, endpoint, status_code, "+Inf")] += 1
 
+
+def _bucket_sort_value(bucket):
+    if bucket == "+Inf":
+        return float("inf")
+    return float(bucket)
+
 @app.get("/")
 def home():
     with METRICS_LOCK:
@@ -168,7 +174,15 @@ def metrics():
             f'{{method="{_escape_label(method)}",endpoint="{_escape_label(endpoint)}",status="{status_code}"}} {count}'
         )
 
-    for (method, endpoint, status_code, bucket), count in sorted(request_latency_buckets):
+    for (method, endpoint, status_code, bucket), count in sorted(
+        request_latency_buckets,
+        key=lambda item: (
+            item[0][0],
+            item[0][1],
+            item[0][2],
+            _bucket_sort_value(item[0][3]),
+        ),
+    ):
         bucket_value = bucket if bucket == "+Inf" else f"{bucket:g}"
         lines.append(
             "sevflow_http_request_duration_seconds_bucket"

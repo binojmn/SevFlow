@@ -12,8 +12,13 @@ server:
     path: /
     pathType: Prefix
     annotations:
-      nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    tls: false
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      cert-manager.io/cluster-issuer: letsencrypt-http
+    tls: true
+    extraTls:
+      - hosts:
+          - argo.sevflow.app
+        secretName: argo-sevflow-app-tls
 
 controller:
   replicas: 1

@@ -2,12 +2,16 @@ ingress:
   enabled: true
   ingressClassName: nginx
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-http
   hosts:
     - grafana.sevflow.app
   path: /
   pathType: Prefix
-  tls: []
+  tls:
+    - secretName: grafana-sevflow-app-tls
+      hosts:
+        - grafana.sevflow.app
 
 service:
   type: ClusterIP

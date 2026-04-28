@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: sevflow-app
+  repository: 696155685144.dkr.ecr.us-east-1.amazonaws.com/sevflow-app
   tag: latest
   pullPolicy: IfNotPresent
 

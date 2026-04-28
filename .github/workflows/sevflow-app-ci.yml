@@ -91,6 +91,27 @@ jobs:
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
 
+      - name: Update Helm image tag to commit SHA
+        if: github.event_name == 'push'
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          path = Path("sevflow-app/helm/sevflow-app/values-prod.yaml")
+          text = path.read_text()
+          text = re.sub(r'tag:\s*".*"', 'tag: "${{ github.sha }}"', text, count=1)
+          path.write_text(text)
+          PY
+
+      - name: Commit updated Helm values
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sevflow-app/helm/sevflow-app/values-prod.yaml
+          git diff --cached --quiet || git commit -m "ci: update sevflow image tag to ${{ github.sha }} [skip ci]"
+          git push
+
       - name: Login Helm to ECR OCI registry
         if: github.event_name == 'push'
         run: |

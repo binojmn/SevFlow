@@ -70,6 +70,7 @@ The CI pipeline:
 - renders manifests with `helm template`
 - pushes the Docker image to Amazon ECR on `push`
 - pushes the packaged Helm chart to Amazon ECR OCI on `push`
+- writes the immutable image tag (`github.sha`) back to `values-prod.yaml` on `push`
 
 ## GitHub Actions secrets
 
@@ -122,6 +123,8 @@ helm install sevflow-app \
 Production-oriented Helm values are in:
 
 - `helm/sevflow-app/values-prod.yaml`
+
+The image tag in `values-prod.yaml` is intended to be updated by CI to an immutable commit SHA so Argo CD can detect a real manifest change and roll the deployment automatically.
 
 Update these placeholders before deployment:
 

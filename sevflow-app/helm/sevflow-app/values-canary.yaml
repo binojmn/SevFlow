@@ -1,0 +1,23 @@
+progressiveDelivery:
+  enabled: true
+  strategy: canary
+  canary:
+    stableServiceSuffix: stable
+    canaryServiceSuffix: canary
+    steps:
+      - setWeight: 10
+      - pause:
+          duration: 2m
+      - setWeight: 50
+      - pause:
+          duration: 5m
+      - setWeight: 100
+  analysis:
+    enabled: true
+    prometheus:
+      address: http://kube-prom-stack-prometheus.monitoring.svc.cluster.local:9090
+    errorRate:
+      interval: 1m
+      range: 2m
+      threshold: 0.05
+      failureLimit: 3

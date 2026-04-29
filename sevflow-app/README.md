@@ -183,9 +183,11 @@ The current production values are configured for host-based routing using `app.s
 
 ## Argo CD
 
-Starter Argo CD application manifest:
+Starter Argo CD application manifests:
 
-- `../argocd/sevflow-app-application.yaml`
+- `../argo/sevflow-app-application.yaml`
+- `../argo/sevflow-app-canary-application.yaml`
+- `../argo/sevflow-app-bluegreen-application.yaml`
 
 Before applying it, update:
 
@@ -199,5 +201,5 @@ The application manifest is already annotated for Argo CD Image Updater, so once
 Apply with:
 
 ```bash
-kubectl apply -f argocd/sevflow-app-application.yaml
+kubectl apply -f argo/sevflow-app-application.yaml
 ```

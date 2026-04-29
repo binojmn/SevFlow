@@ -1,0 +1,20 @@
+progressiveDelivery:
+  enabled: true
+  strategy: blueGreen
+  blueGreen:
+    activeServiceSuffix: active
+    previewServiceSuffix: preview
+    autoPromotionEnabled: false
+    previewIngress:
+      enabled: true
+      className: nginx
+      annotations:
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        cert-manager.io/cluster-issuer: letsencrypt-http
+      host: preview.app.sevflow.app
+      path: /
+      pathType: Prefix
+      tls:
+        - hosts:
+            - preview.app.sevflow.app
+          secretName: preview-app-sevflow-app-tls

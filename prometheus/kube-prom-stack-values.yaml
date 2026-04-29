@@ -3,8 +3,8 @@ grafana:
     - name: Prometheus
       type: prometheus
       access: proxy
-      url: http://kube-prom-stack-prometheus.monitoring.svc.cluster.local:9090
-      isDefault: true
+      url: http://kube-prom-stack-kube-prome-prometheus:9090
+      isDefault: false
   ingress:
     enabled: true
     ingressClassName: nginx
@@ -21,6 +21,13 @@ grafana:
           - grafana.sevflow.app
 
 prometheus:
+  prometheusSpec:
+    additionalScrapeConfigs:
+      - job_name: sevflow-app
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+              - sevflow-app.default.svc.cluster.local:80
   ingress:
     enabled: true
     ingressClassName: nginx

@@ -1,16 +1,84 @@
+{{- $progressiveDelivery := .Values.progressiveDelivery | default dict }}
+{{- $pdEnabled := $progressiveDelivery.enabled | default false }}
+{{- $pdStrategy := $progressiveDelivery.strategy | default "canary" }}
+{{- if not $pdEnabled }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "sevflow-app.fullname" . }}
+  name: {{ include "sevflow-app.serviceName" . }}
   labels:
     {{- include "sevflow-app.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   selector:
-    app.kubernetes.io/name: {{ include "sevflow-app.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- include "sevflow-app.selectorLabels" . | nindent 4 }}
   ports:
     - name: http
       port: {{ .Values.service.port }}
       targetPort: {{ .Values.service.targetPort }}
       protocol: TCP
+{{- else if eq $pdStrategy "canary" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sevflow-app.canary.stableServiceName" . }}
+  labels:
+    {{- include "sevflow-app.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "sevflow-app.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sevflow-app.canary.canaryServiceName" . }}
+  labels:
+    {{- include "sevflow-app.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "sevflow-app.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+{{- else if eq $pdStrategy "blueGreen" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sevflow-app.blueGreen.activeServiceName" . }}
+  labels:
+    {{- include "sevflow-app.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "sevflow-app.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sevflow-app.blueGreen.previewServiceName" . }}
+  labels:
+    {{- include "sevflow-app.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "sevflow-app.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+{{- end }}

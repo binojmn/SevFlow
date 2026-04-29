@@ -1,20 +1,30 @@
+{{- $progressiveDelivery := .Values.progressiveDelivery | default dict }}
+{{- if not ($progressiveDelivery.enabled | default false) }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "sevflow-app.fullname" . }}
   labels:
     {{- include "sevflow-app.labels" . | nindent 4 }}
+{{- $strategy := .Values.deploymentStrategy | default dict }}
+{{- $strategyType := $strategy.type | default "RollingUpdate" }}
+{{- $rollingUpdate := $strategy.rollingUpdate | default dict }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "sevflow-app.name" . }}
-      app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- include "sevflow-app.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: {{ $strategyType }}
+    {{- if eq $strategyType "RollingUpdate" }}
+    rollingUpdate:
+      maxUnavailable: {{ $rollingUpdate.maxUnavailable | default 0 }}
+      maxSurge: {{ $rollingUpdate.maxSurge | default 1 }}
+    {{- end }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "sevflow-app.name" . }}
-        app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- include "sevflow-app.selectorLabels" . | nindent 8 }}
     spec:
       containers:
         - name: sevflow-app
@@ -38,3 +48,4 @@ spec:
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+{{- end }}

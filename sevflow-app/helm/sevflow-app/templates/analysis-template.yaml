@@ -1,0 +1,23 @@
+{{- $progressiveDelivery := .Values.progressiveDelivery | default dict }}
+{{- $analysis := $progressiveDelivery.analysis | default dict }}
+{{- if and ($progressiveDelivery.enabled | default false) ($analysis.enabled | default false) }}
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: {{ include "sevflow-app.fullname" . }}
+  labels:
+    {{- include "sevflow-app.labels" . | nindent 4 }}
+spec:
+  metrics:
+    - name: error-rate
+      interval: {{ $analysis.errorRate.interval | default "1m" }}
+      failureLimit: {{ $analysis.errorRate.failureLimit | default 3 }}
+      successCondition: result[0] <= {{ $analysis.errorRate.threshold | default 0.05 }}
+      provider:
+        prometheus:
+          address: {{ $analysis.prometheus.address | quote }}
+          query: |
+            sum(rate(sevflow_http_requests_by_status_total{status=~"5.."}[{{ $analysis.errorRate.range | default "2m" }}]))
+            /
+            clamp_min(sum(rate(sevflow_http_requests_total[{{ $analysis.errorRate.range | default "2m" }}])), 1)
+{{- end }}

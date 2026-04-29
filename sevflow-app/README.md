@@ -43,6 +43,43 @@ helm upgrade --install sevflow-app helm/sevflow-app \
   --create-namespace
 ```
 
+The chart also supports configuring the Kubernetes deployment strategy. By default it uses a rolling update:
+
+```yaml
+deploymentStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+```
+
+If you need to recreate Pods instead of rolling them, set:
+
+```yaml
+deploymentStrategy:
+  type: Recreate
+```
+
+For progressive delivery, the chart can also switch from a plain `Deployment` to an Argo Rollouts `Rollout`. Set:
+
+```yaml
+progressiveDelivery:
+  enabled: true
+  strategy: canary
+```
+
+or:
+
+```yaml
+progressiveDelivery:
+  enabled: true
+  strategy: blueGreen
+```
+
+When `canary` is enabled, the chart renders stable and canary Services and points the main Ingress at the stable Service so Argo Rollouts can manage traffic with nginx. When `blueGreen` is enabled, the chart renders active and preview Services, and you can optionally enable a preview Ingress for validation before promotion.
+
+For canary mode, keep `ingress.enabled=true` because the chart uses nginx ingress traffic routing. You will also need the Argo Rollouts controller and CRDs installed in the cluster before applying the chart in progressive delivery mode.
+
 To enable the bundled `ingress-nginx` dependency:
 
 ```bash

@@ -19,7 +19,7 @@ REQUEST_LATENCY_BUCKET_COUNTS = defaultdict(int)
 ERROR_COUNTS = defaultdict(int)
 DOMAIN_EVENT_COUNTS = defaultdict(int)
 IN_FLIGHT_REQUESTS = 0
-METRICS_LOCK = Lock()
+METRICS_LOCK = Lock(
 
 
 def _escape_label(value):

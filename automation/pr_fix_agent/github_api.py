@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import requests
+from requests import HTTPError
 
 
 @dataclass
@@ -34,7 +35,17 @@ class GitHubClient:
 
     def _request(self, method: str, path: str, **kwargs: Any) -> requests.Response:
         response = self.session.request(method, f"{self.api_url}{path}", timeout=30, **kwargs)
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except HTTPError as exc:
+            details = response.text.strip()
+            if details:
+                raise HTTPError(
+                    f"{exc} | GitHub response: {details}",
+                    response=response,
+                    request=exc.request,
+                ) from exc
+            raise
         return response
 
     def get_pull_request(self, number: int) -> PullRequestContext:

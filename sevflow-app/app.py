@@ -19,7 +19,7 @@ REQUEST_LATENCY_BUCKET_COUNTS = defaultdict(int)
 ERROR_COUNTS = defaultdict(int)
 DOMAIN_EVENT_COUNTS = defaultdict(int)
 IN_FLIGHT_REQUESTS = 0
-METRICS_LOCK = Lock(
+METRICS_LOCK = Lock()
 
 
 def _escape_label(value):
@@ -51,7 +51,7 @@ def home():
         {
             "name": "sevflow-app",
             "status": "ok",
-            "message": "Welcome to the SevFlow microservice -15",
+            "message": "Welcome to the Sevflow microservice -15",
             "version": os.getenv("APP_VERSION", "1.0.0"),
             "environment": os.getenv("APP_ENV", "dev"),
         }
@@ -132,23 +132,23 @@ def metrics():
         in_flight_requests = IN_FLIGHT_REQUESTS
 
     lines = [
-        "# HELP sevflow_app_info Static metadata about the SevFlow app.",
+        "# HELP sevflow_app_info Static metadata about the Sevflow app.",
         "# TYPE sevflow_app_info gauge",
         (
             f'sevflow_app_info{{version="{_escape_label(app_version)}",'
             f'environment="{_escape_label(app_env)}",commit="{_escape_label(git_commit)}",'
             f'pod="{_escape_label(pod_name)}",python_version="{_escape_label(python_version)}"}} 1'
         ),
-        "# HELP sevflow_health_status Health status for the SevFlow app.",
+        "# HELP sevflow_health_status Health status for the Sevflow app.",
         "# TYPE sevflow_health_status gauge",
         "sevflow_health_status 1",
-        "# HELP sevflow_process_start_time_seconds Unix time when the SevFlow app started.",
+        "# HELP sevflow_process_start_time_seconds Unix time when the Sevflow app started.",
         "# TYPE sevflow_process_start_time_seconds gauge",
         f"sevflow_process_start_time_seconds {APP_START_TIME}",
-        "# HELP sevflow_process_uptime_seconds Seconds since the SevFlow app started.",
+        "# HELP sevflow_process_uptime_seconds Seconds since the Sevflow app started.",
         "# TYPE sevflow_process_uptime_seconds gauge",
         f"sevflow_process_uptime_seconds {max(time() - APP_START_TIME, 0.0)}",
-        "# HELP sevflow_http_requests_total Total HTTP requests handled by the SevFlow app.",
+        "# HELP sevflow_http_requests_total Total HTTP requests handled by the Sevflow app.",
         "# TYPE sevflow_http_requests_total counter",
         "# HELP sevflow_http_requests_by_status_total Total HTTP requests by status code.",
         "# TYPE sevflow_http_requests_by_status_total counter",
@@ -159,7 +159,7 @@ def metrics():
         f"sevflow_http_in_flight_requests {in_flight_requests}",
         "# HELP sevflow_app_errors_total Total unhandled application errors.",
         "# TYPE sevflow_app_errors_total counter",
-        "# HELP sevflow_domain_events_total Total SevFlow domain events.",
+        "# HELP sevflow_domain_events_total Total Sevflow domain events.",
         "# TYPE sevflow_domain_events_total counter",
     ]
 

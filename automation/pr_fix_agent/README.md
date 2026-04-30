@@ -50,5 +50,5 @@ Optional flags:
 ## Notes
 
 - The agent is intentionally constrained to repo file reads, repo file writes, PR context, and one validation command.
-- It is best for narrow follow-up fixes, not large refactors.
+- It is best for narrow follow-up fixes, not large refactors .
 - The workflow added in `.github/workflows/pr-fix-agent.yml` is the easiest way to trigger it from GitHub Actions.

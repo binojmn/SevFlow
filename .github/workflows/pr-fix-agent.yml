@@ -52,7 +52,7 @@ jobs:
       - name: Run PR fix agent
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PUSH_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           OPENAI_MODEL: ${{ inputs.model }}
           DRY_RUN: ${{ inputs.dry_run }}

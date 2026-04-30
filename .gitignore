@@ -18,3 +18,5 @@ sevflow-app/venv/
 automation/pr_fix_agent/.agent-workspace/
 automation/pr_fix_agent/__pycache__/
 automation/pr_fix_agent/tests/__pycache__/
+automation/bastion_k8s_mcp/__pycache__/
+automation/bastion_k8s_mcp/tests/__pycache__/

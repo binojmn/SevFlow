@@ -1,0 +1,75 @@
+{{- $progressiveDelivery := .Values.progressiveDelivery | default dict }}
+{{- $pdEnabled := $progressiveDelivery.enabled | default false }}
+{{- $pdStrategy := $progressiveDelivery.strategy | default "canary" }}
+{{- $canary := $progressiveDelivery.canary | default dict }}
+{{- $blueGreen := $progressiveDelivery.blueGreen | default dict }}
+{{- $analysis := $progressiveDelivery.analysis | default dict }}
+{{- if $pdEnabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ include "sevflow-app.fullname" . }}
+  labels:
+    {{- include "sevflow-app.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "sevflow-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sevflow-app.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: sevflow-app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.containerPort }}
+              name: http
+          env:
+            - name: APP_ENV
+              value: {{ .Values.env.appEnv | quote }}
+            - name: APP_VERSION
+              value: {{ .Values.env.appVersion | quote }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+  strategy:
+    {{- if eq $pdStrategy "canary" }}
+    {{- if not .Values.ingress.enabled }}
+    {{- fail "progressiveDelivery.strategy=canary requires ingress.enabled=true for nginx traffic routing" }}
+    {{- end }}
+    canary:
+      stableService: {{ include "sevflow-app.canary.stableServiceName" . }}
+      canaryService: {{ include "sevflow-app.canary.canaryServiceName" . }}
+      trafficRouting:
+        nginx:
+          stableIngress: {{ include "sevflow-app.fullname" . }}
+      steps:
+        {{- toYaml $canary.steps | nindent 8 }}
+      {{- if $analysis.enabled }}
+      analysis:
+        templates:
+          - templateName: {{ include "sevflow-app.fullname" . }}
+      {{- end }}
+    {{- else if eq $pdStrategy "blueGreen" }}
+    blueGreen:
+      activeService: {{ include "sevflow-app.blueGreen.activeServiceName" . }}
+      previewService: {{ include "sevflow-app.blueGreen.previewServiceName" . }}
+      autoPromotionEnabled: {{ $blueGreen.autoPromotionEnabled | default false }}
+    {{- if hasKey $blueGreen "autoPromotionSeconds" }}
+      autoPromotionSeconds: {{ $blueGreen.autoPromotionSeconds }}
+    {{- end }}
+    {{- else }}
+    {{- fail (printf "unsupported progressiveDelivery.strategy %q" $pdStrategy) }}
+    {{- end }}
+{{- end }}

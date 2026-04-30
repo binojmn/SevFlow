@@ -1,6 +1,6 @@
 image:
-  repository: "<account-id>.dkr.ecr.us-east-1.amazonaws.com/sevflow-app"
-  tag: "set-by-ci"
+  repository: "696155685144.dkr.ecr.us-east-1.amazonaws.com/sevflow-app"
+  tag: "ed92eb4d3e6d34cce84b66897e1c812cb65f84a0"
   pullPolicy: IfNotPresent
 
 replicaCount: 2
@@ -18,11 +18,15 @@ ingress:
   enabled: true
   className: nginx
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-http
   host: app.sevflow.app
   path: /
   pathType: Prefix
-  tls: []
+  tls:
+    - hosts:
+        - app.sevflow.app
+      secretName: app-sevflow-app-tls
 
 resources:
   requests:
@@ -31,3 +35,44 @@ resources:
   limits:
     cpu: 250m
     memory: 256Mi
+
+deploymentStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+
+progressiveDelivery:
+  enabled: false
+  strategy: canary
+  canary:
+    stableServiceSuffix: stable
+    canaryServiceSuffix: canary
+    steps:
+      - setWeight: 20
+      - pause:
+          duration: 2m
+      - setWeight: 50
+      - pause:
+          duration: 5m
+  blueGreen:
+    activeServiceSuffix: active
+    previewServiceSuffix: preview
+    autoPromotionEnabled: false
+    previewIngress:
+      enabled: false
+      className: nginx
+      annotations: {}
+      host: ""
+      path: /
+      pathType: Prefix
+      tls: []
+  analysis:
+    enabled: false
+    prometheus:
+      address: http://kube-prom-stack-prometheus.monitoring.svc.cluster.local:9090
+    errorRate:
+      interval: 1m
+      range: 2m
+      threshold: 0.05
+      failureLimit: 3

@@ -1,4 +1,14 @@
 {{- if .Values.ingress.enabled }}
+{{- $progressiveDelivery := .Values.progressiveDelivery | default dict }}
+{{- $pdEnabled := $progressiveDelivery.enabled | default false }}
+{{- $pdStrategy := $progressiveDelivery.strategy | default "canary" }}
+{{- $blueGreen := $progressiveDelivery.blueGreen | default dict }}
+{{- $backendServiceName := include "sevflow-app.serviceName" . }}
+{{- if and $pdEnabled (eq $pdStrategy "canary") }}
+{{- $backendServiceName = include "sevflow-app.canary.stableServiceName" . }}
+{{- else if and $pdEnabled (eq $pdStrategy "blueGreen") }}
+{{- $backendServiceName = include "sevflow-app.blueGreen.activeServiceName" . }}
+{{- end }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -25,7 +35,39 @@ spec:
             pathType: {{ .Values.ingress.pathType }}
             backend:
               service:
-                name: {{ include "sevflow-app.fullname" . }}
+                name: {{ $backendServiceName }}
                 port:
                   number: {{ .Values.service.port }}
+{{- if and $pdEnabled (eq $pdStrategy "blueGreen") ($blueGreen.previewIngress.enabled | default false) }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "sevflow-app.fullname" . }}-preview
+  labels:
+    {{- include "sevflow-app.labels" . | nindent 4 }}
+  {{- with $blueGreen.previewIngress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ $blueGreen.previewIngress.className | default .Values.ingress.className }}
+  {{- with $blueGreen.previewIngress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    - {{- if $blueGreen.previewIngress.host }}
+      host: {{ $blueGreen.previewIngress.host }}
+      {{- end }}
+      http:
+        paths:
+          - path: {{ $blueGreen.previewIngress.path | default .Values.ingress.path }}
+            pathType: {{ $blueGreen.previewIngress.pathType | default .Values.ingress.pathType }}
+            backend:
+              service:
+                name: {{ include "sevflow-app.blueGreen.previewServiceName" . }}
+                port:
+                  number: {{ .Values.service.port }}
+{{- end }}
 {{- end }}

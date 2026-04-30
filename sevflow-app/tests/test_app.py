@@ -28,6 +28,20 @@ class SevFlowAppTests(unittest.TestCase):
         payload = response.get_json()
         self.assertIn("critical", payload["severityLevels"])
 
+    def test_metrics_endpoint(self):
+        self.client.get("/")
+        self.client.get("/api/severity")
+
+        response = self.client.get("/metrics")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/plain", response.content_type)
+        self.assertIn(b"sevflow_http_requests_total", response.data)
+        self.assertIn(b"sevflow_http_requests_by_status_total", response.data)
+        self.assertIn(b"sevflow_http_request_duration_seconds_bucket", response.data)
+        self.assertIn(b"sevflow_domain_events_total", response.data)
+        self.assertIn(b"sevflow_app_info", response.data)
+
 
 if __name__ == "__main__":
     unittest.main()

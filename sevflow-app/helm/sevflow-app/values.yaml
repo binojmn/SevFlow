@@ -27,8 +27,58 @@ ingress:
 
 resources: {}
 
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    path: /metrics
+    labels:
+      release: kube-prom-stack
+
 ingress-nginx:
   enabled: false
   controller:
     service:
       type: LoadBalancer
+
+deploymentStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+
+progressiveDelivery:
+  enabled: false
+  strategy: canary
+  canary:
+    stableServiceSuffix: stable
+    canaryServiceSuffix: canary
+    steps:
+      - setWeight: 20
+      - pause:
+          duration: 2m
+      - setWeight: 50
+      - pause:
+          duration: 5m
+  blueGreen:
+    activeServiceSuffix: active
+    previewServiceSuffix: preview
+    autoPromotionEnabled: false
+    previewIngress:
+      enabled: false
+      className: nginx
+      annotations: {}
+      host: ""
+      path: /
+      pathType: Prefix
+      tls: []
+  analysis:
+    enabled: false
+    prometheus:
+      address: http://kube-prom-stack-prometheus.monitoring.svc.cluster.local:9090
+    errorRate:
+      interval: 1m
+      range: 2m
+      threshold: 0.05
+      failureLimit: 3

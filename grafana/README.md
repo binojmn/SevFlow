@@ -22,3 +22,11 @@ helm upgrade --install grafana grafana/grafana \
 Create a GoDaddy `CNAME`:
 
 - `grafana` -> your ingress ELB hostname
+
+## Dashboard
+
+Import the dashboard JSON at:
+
+- `grafana/dashboards/sevflow-observability-dashboard.json`
+
+It expects the Prometheus datasource to be named `Prometheus`, which matches the existing kube-prometheus-stack values in this repo.

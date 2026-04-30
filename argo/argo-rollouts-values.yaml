@@ -1,0 +1,20 @@
+controller:
+  replicas: 1
+
+dashboard:
+  enabled: true
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - argo-rollouts.sevflow.app
+    paths:
+      - /
+    pathType: Prefix
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      cert-manager.io/cluster-issuer: letsencrypt-http
+    tls:
+      - secretName: argo-rollouts-sevflow-app-tls
+        hosts:
+          - argo-rollouts.sevflow.app

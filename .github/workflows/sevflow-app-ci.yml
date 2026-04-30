@@ -95,6 +95,16 @@ jobs:
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
 
+      - name: Prepare GitOps branch
+        if: github.event_name == 'push'
+        run: |
+          git fetch origin ${{ env.GITOPS_UPDATE_BRANCH }} || true
+          if git rev-parse --verify origin/${{ env.GITOPS_UPDATE_BRANCH }} >/dev/null 2>&1; then
+            git checkout -B ${{ env.GITOPS_UPDATE_BRANCH }} origin/${{ env.GITOPS_UPDATE_BRANCH }}
+          else
+            git checkout -B ${{ env.GITOPS_UPDATE_BRANCH }}
+          fi
+
       - name: Update Helm image tag to commit SHA
         if: github.event_name == 'push'
         run: |
@@ -114,6 +124,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add helm/sevflow-app/values-prod.yaml
           git diff --cached --quiet || git commit -m "ci: update sevflow image tag to ${{ github.sha }} [skip ci]"
+          git pull --rebase origin ${{ env.GITOPS_UPDATE_BRANCH }} || true
           git push origin HEAD:${{ env.GITOPS_UPDATE_BRANCH }}
 
       - name: Login Helm to ECR OCI registry

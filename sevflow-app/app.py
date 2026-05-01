@@ -43,6 +43,7 @@ def _bucket_sort_value(bucket):
         return float("inf")
     return float(bucket)
 
+
 @app.get("/")
 def home():
     with METRICS_LOCK:
@@ -145,7 +146,7 @@ def metrics():
         "# HELP sevflow_process_start_time_seconds Unix time when the SevFlow app started.",
         "# TYPE sevflow_process_start_time_seconds gauge",
         f"sevflow_process_start_time_seconds {APP_START_TIME}",
-        "# HELP sevflow_process_uptime_seconds Seconds since the SevFlow app started.",
+        "# HELP sevflow_process_uptime_seconds Seconds since the Sevflow app started.",
         "# TYPE sevflow_process_uptime_seconds gauge",
         f"sevflow_process_uptime_seconds {max(time() - APP_START_TIME, 0.0)}",
         "# HELP sevflow_http_requests_total Total HTTP requests handled by the SevFlow app.",

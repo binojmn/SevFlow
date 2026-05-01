@@ -12,13 +12,24 @@ class GitHelper:
         self.git_bin = git_bin or os.getenv("GIT_BIN", "git")
 
     def _run(self, *args: str) -> str:
-        completed = subprocess.run(
-            [self.git_bin, *args],
-            cwd=self.repo_path,
-            check=True,
-            text=True,
-            capture_output=True,
-        )
+        try:
+            completed = subprocess.run(
+                [self.git_bin, *args],
+                cwd=self.repo_path,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+        except subprocess.CalledProcessError as exc:
+            command = self.shell_join([self.git_bin, *args])
+            stdout = (exc.stdout or "").strip()
+            stderr = (exc.stderr or "").strip()
+            details = [f"Git command failed: {command}"]
+            if stdout:
+                details.append(f"stdout:\n{stdout}")
+            if stderr:
+                details.append(f"stderr:\n{stderr}")
+            raise RuntimeError("\n\n".join(details)) from exc
         return completed.stdout.strip()
 
     def ensure_identity(self, name: str, email: str) -> None:
@@ -38,7 +49,7 @@ class GitHelper:
         self._run("commit", "-m", message)
 
     def push_branch(self, branch_name: str) -> None:
-        self._run("push", "--set-upstream", "origin", branch_name)
+        self._run("push", "--set-upstream", "origin", f"HEAD:refs/heads/{branch_name}")
 
     @staticmethod
     def shell_join(parts: list[str]) -> str:

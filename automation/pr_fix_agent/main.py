@@ -12,6 +12,13 @@ def slugify(value: str) -> str:
     return slug[:40] or "update"
 
 
+def build_branch_name(pr_number: int, issue_summary: str) -> str:
+    slug = slugify(issue_summary)
+    run_id = os.getenv("GITHUB_RUN_ID")
+    suffix = run_id or "manual"
+    return f"pr-fix/pr-{pr_number}-{slug}-{suffix}"
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the LangChain PR fix agent.")
     parser.add_argument("--pr-number", type=int, required=True)
@@ -55,9 +62,9 @@ def main() -> None:
     require_env("OPENAI_API_KEY")
     repository = require_env("GITHUB_REPOSITORY")
     
-    LANGSMITH_TRACING = require_env("LANGSMITH_TRACING")
-    LANGSMITH_API_KEY = require_env("LANGSMITH_API_KEY")
-    LANGSMITH_PROJECT = require_env("LANGSMITH_PROJECT")
+    require_env("LANGSMITH_TRACING")
+    require_env("LANGSMITH_API_KEY")
+    require_env("LANGSMITH_PROJECT")
 
     github = GitHubClient(token=github_token, repository=repository)
     pr = github.get_pull_request(args.pr_number)
@@ -73,7 +80,7 @@ def main() -> None:
     if not session.modified_files:
         raise RuntimeError("The agent finished without modifying any files.")
 
-    branch_name = f"pr-fix/pr-{pr.number}-{slugify(args.issue_summary)}"
+    branch_name = build_branch_name(pr.number, args.issue_summary)
     commit_message = f"fix: address PR #{pr.number} feedback"
 
     print(f"Agent summary: {fix_summary}")

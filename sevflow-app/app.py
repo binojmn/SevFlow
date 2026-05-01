@@ -22,7 +22,7 @@ IN_FLIGHT_REQUESTS = 0
 METRICS_LOCK = Lock()
 
 
-def _escape_label(value):
+def _escape_label(value
     return str(value).replace("\\", "\\\\").replace("\n", "\\n").replace('"', '\\"')
 
 

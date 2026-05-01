@@ -118,6 +118,9 @@ jobs:
       - name: Run PR fix agent
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LANGSMITH_TRACING: ${{ secrets.LANGSMITH_TRACING }}
+          LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
+          LANGSMITH_PROJECT: ${{ secrets.LANGSMITH_PROJECT }}
           GITHUB_TOKEN: ${{ secrets.GH_PUSH_TOKEN != '' && secrets.GH_PUSH_TOKEN || github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           OPENAI_MODEL: ${{ steps.resolve-context.outputs.model }}

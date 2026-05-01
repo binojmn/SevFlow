@@ -6,6 +6,7 @@ import re
 from pathlib import Path
 
 
+
 def slugify(value: str) -> str:
     slug = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
     return slug[:40] or "update"
@@ -53,6 +54,10 @@ def main() -> None:
     github_token = require_env("GITHUB_TOKEN")
     require_env("OPENAI_API_KEY")
     repository = require_env("GITHUB_REPOSITORY")
+    
+    LANGSMITH_TRACING = require_env("LANGSMITH_TRACING")
+    LANGSMITH_API_KEY = require_env("LANGSMITH_API_KEY")
+    LANGSMITH_PROJECT = require_env("LANGSMITH_PROJECT")
 
     github = GitHubClient(token=github_token, repository=repository)
     pr = github.get_pull_request(args.pr_number)

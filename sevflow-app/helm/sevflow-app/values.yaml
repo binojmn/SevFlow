@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: 696155685144.dkr.ecr.us-east-1.amazonaws.com/sevflow-app
-  tag: "set-by-ci"
+  tag: "image pull error"
   pullPolicy: IfNotPresent
 
 service:

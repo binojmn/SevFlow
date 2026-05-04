@@ -113,7 +113,8 @@ jobs:
           import re
           path = Path("helm/sevflow-app/values-prod.yaml")
           text = path.read_text()
-          text = re.sub(r'tag:\s*".*"', 'tag: "${{ github.sha }}"', text, count=1)
+          # text = re.sub(r'tag:\s*".*"', 'tag: "${{ github.sha }}"', text, count=1)
+          text = "testing"
           path.write_text(text)
           PY
 

@@ -22,3 +22,4 @@ automation/pr_fix_agent/tests/__pycache__/
 automation/bastion_k8s_mcp/
 automation/bastion_k8s_mcp/__pycache__/
 automation/bastion_k8s_mcp/tests/__pycache__/
+terraform/kubeconfig-local
